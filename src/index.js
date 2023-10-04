@@ -1,7 +1,7 @@
 import Notiflix from "notiflix";
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
-import { getImages} from "./JS/Images-API";
+import { getImages} from "./js/Images-API";
 
 
 const refs = {
@@ -106,24 +106,25 @@ function imageTemplate(images) {
         .map(({webformatURL, largeImageURL, tags, likes, views, comments, downloads}) => {
             return `
             <div class="photo-card">
-              <a class = "link-photo" href = "${largeImageURL}">
-                <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+              <a class = "link-photo" href = "${largeImageURL}" >
+                <img src="${webformatURL}" alt="${tags}" loading="lazy"  width="380"
+                    height="300" />
               </a>
               <div class="info">
                 <p class="info-item">
-                   <b>Likes</b>
+                   <b class = "b">Likes</b>
                    ${likes}
                 </p>
                 <p class="info-item">
-                   <b>Views</b>
+                   <b class = "b">Views</b>
                    ${views}
                 </p>
                 <p class="info-item">
-                   <b>Comments</b>
+                   <b class = "b">Comments</b>
                    ${comments}
                 </p>
                 <p class="info-item">
-                   <b>Downloads</b>
+                   <b class = "b">Downloads</b>
                    ${downloads}
                 </p>
                </div>

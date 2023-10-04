@@ -1,7 +1,8 @@
 import Notiflix from "notiflix";
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
-import { getImages } from "./JS/axios";
+import { getImages} from "./JS/Images-API";
+
 
 const refs = {
     formEl: document.querySelector('.search-form'),
@@ -10,51 +11,102 @@ const refs = {
 
 }
 
+let lightbox = new SimpleLightbox('.link-photo', {
+  captions: true,
+  captionsData: 'alt',
+  captionDelay: 250,
+});
+
 let page = 1;
 let query = '';
+let maxPage = null;
 const perPage = 40;
-const totalImages = 500;
-const maxPage = Math.ceil(totalImages / perPage);
 
 refs.formEl.addEventListener('submit', onFormSubmit)
 refs.btnEl.addEventListener('click', onBtnClick)
 
 async function onFormSubmit(e) {
-    e.preventDefault();
-    query = e.target.elements.searchQuery.value;
+  e.preventDefault();
+  page = 1;
+  refs.divEl.innerHTML = ''
+  refs.btnEl.classList.add('is-hidden');
+  query = e.target.elements.searchQuery.value.trim();
 
-    getImages(query, page)
-        .then(data => {
-            renderPage(data)
-        })
-        .catch(error => alert(`Sorry`))
+  if (query === '') {
+    refs.formEl.reset()
+    return Notiflix.Notify.failure('Please, fill the search field!');
+  }
+
+  try {
+    const data = await getImages(query, page);
+    renderPage(data.hits);
+    lightbox.refresh();
+
+    maxPage = Math.ceil(data.totalHits / perPage)
+
+    if (data.hits.length === 0) {
+      refs.formEl.reset()
+      Notiflix.Notify.info('Sorry, there are no images matching your search query. Please try again.')
+      return
+    };
+
+    Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`)
+    
+    if (maxPage === page) {
+      Notiflix.Notify.info('We are sorry, but you have reached the end of search results.')
+      refs.btnEl.classList.add('is-hidden');
+      return;
+    }
+
+    refs.btnEl.classList.remove('is-hidden');
+    refs.formEl.reset()
+     
+  } catch (error) {
+  console.log(error); 
+  }
+    // getImages(query, page)
+    //     .then(data => {
+    //         renderPage(data)
+    //     })
+    //     .catch(error => alert(`Sorry`))
 
 };
 
-function onBtnClick(e) {
-    page += 1;
+async function onBtnClick(e) {
+  page += 1;
 
-    getImages(query, page)
-        .then(data => {
-            if (maxPage === page) {
-                alert ('It is all')
-            } else {
-               renderPage(data) 
-            }; 
-        })
-        .catch(error => alert(`Sorry`))
+  try {
+    const data = await getImages(query, page);
+    maxPage = Math.ceil(data.totalHits / perPage);
+    
+    if (maxPage === page) {
+      refs.btnEl.classList.add('is-hidden');
+      Notiflix.Notify.info('We are sorry, but you have reached the end of search results.')
+    }
+    renderPage(data.hits);
+    lightbox.refresh();
+     
+  } catch (error) {
+    console.log(error); 
+  }
+    // getImages(query, page)
+    //     .then(data => {
+    //         if (maxPage === page) {
+    //             alert ('It is all')
+    //         } else {
+    //            renderPage(data) 
+    //         };  
+    //     })
+    //     .catch(error => alert(`Sorry`))
 }
 
-// function createMarkup() {
-    
-// }
 
 function imageTemplate(images) {
     return images
         .map(({webformatURL, largeImageURL, tags, likes, views, comments, downloads}) => {
             return `
             <div class="photo-card">
-              <a href = "${largeImageURL}">
+              <a class = "link-photo" href = "${largeImageURL}">
                 <img src="${webformatURL}" alt="${tags}" loading="lazy" />
               </a>
               <div class="info">
@@ -89,7 +141,6 @@ function renderPage(images) {
 
 
 
-// getImages("cat", 1).then(console.log).catch(error => alert(`Sorry`))
 
 
 
@@ -100,20 +151,3 @@ function renderPage(images) {
 
 
 
-{/* <div class="photo-card">
-  <img src="" alt="" loading="lazy" />
-  <div class="info">
-    <p class="info-item">
-      <b>Likes</b>
-    </p>
-    <p class="info-item">
-      <b>Views</b>
-    </p>
-    <p class="info-item">
-      <b>Comments</b>
-    </p>
-    <p class="info-item">
-      <b>Downloads</b>
-    </p>
-  </div>
-</div> */}
